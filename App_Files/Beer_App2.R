@@ -14,6 +14,7 @@ library(shinydashboard)
 library(plotly)
 library(tidyverse)
 library(googleVis)
+library(scales)
 
 
 #Datasets
@@ -206,8 +207,11 @@ ui <- dashboardPage(
                                   choices = popchoices,
                                   selected = "Number of Breweries"),
                       
-                      sliderInput("slider", label = h3("Year Range"), min = 1984, 
-                                  max = 2018, value = c(1995, 2008)),
+                      sliderInput("slider", label = h3("Year Range"), 
+                                  min = 1984, 
+                                  max = 2018,
+                                  value = c(1995, 2018),
+                                  sep = ""),
                       br(),
                       
                       selectInput("state_choice1", 
@@ -423,7 +427,8 @@ server <- function(input, output) {
       geom_line(size = 2) +
       labs(title = input$pop_choice1, 
            x = "Year", 
-           y = y_axis_choice) 
+           y = y_axis_choice)+ 
+      scale_y_continuous(breaks= pretty_breaks()) 
       
     
     ggplotly(p)
