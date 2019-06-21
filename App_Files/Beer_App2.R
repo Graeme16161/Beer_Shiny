@@ -18,7 +18,7 @@ library(scales)
 
 
 #Datasets
-beer_production_data <- read_csv("beer_prodction_final.csv", 
+beer_production_data <- read_csv("beer_prodction_final2.csv", 
                                  col_types = cols(X1 = col_skip()))
 population_data <- read_csv("Tidy_brewery_pop_data.csv")
 review_data <- read_csv("Tidy_processed_review.csv") %>% na.omit()
@@ -30,6 +30,7 @@ popchoices <- c("Number of Breweries", "Residents per Brewery")
 yearchoices <- as.character(1984:2018)
 yearchoices2 <- as.character(2007:2018)
 statechoices <- sort(unique(population_data$State))
+statechoices <- append(statechoices,"Blank")
 reviewchoices <- c("Mean ABV",
                    "Mean Rating")
 
@@ -94,7 +95,7 @@ ui <- dashboardPage(
                 box(
                   background = "black",
                   width = NULL,
-                  img(src = 'beer.jpg', width = "600", align = "center")
+                  img(src = 'beer.jpg', width = "100%", align = "center")
                 )
               )
               )), 
@@ -221,11 +222,11 @@ ui <- dashboardPage(
                       selectInput("state_choice2", 
                                   "Choose State:",
                                   choices = statechoices,
-                                  selected = "CT"),
+                                  selected = "Blank"),
                       selectInput("state_choice3", 
                                   "Choose State:",
                                   choices = statechoices,
-                                  selected = "CT")
+                                  selected = "Blank")
                       
                        
                   )
@@ -268,11 +269,11 @@ ui <- dashboardPage(
                       selectInput("state_choice2_2", 
                                   "Choose State:",
                                   choices = statechoices,
-                                  selected = "CT"),
+                                  selected = "Blank"),
                       selectInput("state_choice3_2", 
                                   "Choose State:",
                                   choices = statechoices,
-                                  selected = "CT")
+                                  selected = "Blank")
                       
                       
                   )
@@ -360,16 +361,22 @@ server <- function(input, output) {
     
     if(input$production_choices == "Total Beer Production"){
       type_choosen = "total_production"
+      pretty_var = "Total Production"
     }else if(input$production_choices == "Beer Consumed in Breweries (per person)"){
       type_choosen = "consumed_in_brewery_PP"
+      pretty_var = "Brewery Consumption (PP)"
     }else if(input$production_choices == "Beer Produced (per person)"){
       type_choosen = "prodcution_PP"
+      pretty_var = "Total Production (PP)"
     }else if(input$production_choices == "Production consumed in Breweries (%)"){
       type_choosen =  "percent_in_brewery"
+      pretty_var = "Consumed in Brewery (%)"
     }else if(input$production_choices == "Production sold in Bottles and Cans (%)"){
       type_choosen =  "percent_in_can"
+      pretty_var = "Canned or Bottled (%)"
     }else{
       type_choosen =  "percent_in_keg"
+      pretty_var = "Kegged (%)"
     }
     
     filtered_production <- beer_production_data%>%
@@ -382,7 +389,7 @@ server <- function(input, output) {
                       width="auto", height="auto")
     
     gvisGeoChart(filtered_production, locationvar = "STATE", 
-                 colorvar=type_choosen,
+                 colorvar=pretty_var,
                  options= myoptions) 
     
     
@@ -423,15 +430,15 @@ server <- function(input, output) {
       na.omit() %>%
       filter(State %in% s) %>% 
       filter(year > r[1] & year < r[2])%>%
-      ggplot(aes(year,get(type_choosen),color = State)) + 
-      geom_line(size = 2) +
+      ggplot(aes(year,get(type_choosen),color = State, group = State)) + 
+      geom_line(size = 2,aes(text=sprintf("State: %s<br>Value: %g<br>Year: %g", State, get(type_choosen),year))) +
       labs(title = input$pop_choice1, 
            x = "Year", 
            y = y_axis_choice)+ 
       scale_y_continuous(breaks= pretty_breaks()) 
       
     
-    ggplotly(p)
+    ggplotly(p, tooltip="text")
     
   })
   
@@ -461,14 +468,14 @@ server <- function(input, output) {
     p = beer_production_data %>% 
       na.omit() %>%
       filter(STATE %in% s) %>% 
-      ggplot(aes(year,get(type_choosen),color = STATE)) + 
-      geom_line(size = 2) +
+      ggplot(aes(x = year,y = get(type_choosen),  color = STATE, group = STATE)) + 
+      geom_line(size = 2,aes(text=sprintf("State: %s<br>Value: %g<br>Year: %g", STATE, get(type_choosen),year))) +
       labs(title = input$production_choice1, 
            x = "Year", 
            y = y_axis_choice) 
     
     
-    ggplotly(p)
+    ggplotly(p, tooltip="text")
     
   })
   
