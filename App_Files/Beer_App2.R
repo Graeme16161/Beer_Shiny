@@ -24,6 +24,11 @@ population_data <- read_csv("Tidy_brewery_pop_data.csv")
 review_data <- read_csv("Tidy_processed_review.csv") %>% na.omit()
 review_data$style = as.factor(review_data$style)
 
+#convert from barrels per thousand to pints per person, 248 prints per barrel 
+
+beer_production_data$`Total Production (PP)` = beer_production_data$`Total Production (PP)`/1000*248
+beer_production_data$`Brewery Consumption (PP)`= beer_production_data$`Brewery Consumption (PP)`/1000*248
+
 
 #choices vectors
 popchoices <- c("Number of Breweries", "Residents per Brewery")
@@ -83,9 +88,9 @@ ui <- dashboardPage(
                   width = NULL,
                   HTML(paste(h4("The purpose of this dashboard is to help the user understand the state of the American brewing industry through visualizations. Most of the data used in this dashboard comes from United Dtates Alcohol and Tobacco Tax and Trade Bureau which is a bureau within the Department of the Treasury. State population data, used to calculate \u0027per resident\u0027 statistics comes from the Federal Reserve Bank of St. Louis. Additionally, the \u0027Mean ABV\u0027 and \u0027Mean Rating\u0027 data comes from a Kaggle.com data set that was originally scraped from BeerAdvocate. Where as the other data comes from highly reputable sources, conclusions based on this data should be taken with a grain of salt. There may be unknown biases, both innocent and nefarious, within the data.  "),
                              '<br/>',
-                             h4("It is important to understand how drastically the presence of large brewing facilities affects some of the production metrics. For example, in 2018 over 90% of beer brewed in Oklahoma was consumed on brewery premises. Whereas less than 1% of corresponding beer was consumed this way in neighboring Texas. This is undoubtably due to the presence of large Anheuser-Busch production facilities in the state which are far less likely to have on location tap rooms than small craft breweries."),
+                             h4("When exploring the data, it is important to consider how the presence of large brewing facilities affects some of the metrics. For example, in 2018 over 90% of beer brewed in Oklahoma was consumed on brewery premises. Whereas less than 1% of corresponding beer was consumed this way in neighboring Texas. This is undoubtably due to the presence of large Anheuser-Busch production facilities in the state which produce high volumes of beer for national sale and dwarf production at small breweries with onsite tap rooms. "),
                              '<br/>',
-                             h4("I especially enjoyed seeing the explosion of craft breweries reflected in the data. While the Alcohol and Tobacco Tax and Trade Bureau does not collect this data explicitly, various metrics such as \u0027barrels of beer consumed on a brewery premise\u0027 serve as good proxies."))
+                             h4("I especially enjoyed seeing the explosion of craft breweries reflected in the data. While the Alcohol and Tobacco Tax and Trade Bureau does not collect this data explicitly, various metrics such as \u0027barrels of beer consumed on a brewery premise\u0027 serve as good proxies. It is also intersting look at trends in specific states and investigate how they correspond with regulatory changes."))
                         
                 )
               )),
@@ -276,6 +281,11 @@ ui <- dashboardPage(
                                   selected = "Blank")
                       
                       
+                  ),
+                  box(width = NULL,
+                      title = "Data Information",
+                      background = "black",
+                      textOutput("production_text2")
                   )
                 )
                 
@@ -401,9 +411,9 @@ server <- function(input, output) {
     if(input$production_choices == "Total Beer Production"){
       "Total beer production measures the beer production (in barrels) that is deemed taxable by the US Alcohol and Tobacco Tax and Trade Bureau. It should be noted that this statistic does not include exported beer, thus only beer destined for the American market is included in the map."
     }else if(input$production_choices == "Beer Consumed in Breweries (per person)"){
-      "Beer Consumed in Breweries (per person) measures the amount of beer (in barrels) consumed on the premise of a brewery for each resident of the respective state. It should be noted that this statistic does not distinguish between state residents and visitors."
+      "Beer Consumed in Breweries (per person) measures the amount of beer (in 16oz pints) consumed on the premise of a brewery for each resident of the respective state. It should be noted that this statistic does not distinguish between state residents and visitors."
     }else if(input$production_choices == "Beer Produced (per person)"){
-      "Beer Produced (per person) measures the amount of beer produced (in barrels) AND destined for the American market per resident of the respective state."
+      "Beer Produced (per person) measures the amount of beer produced (in 16oz pints) AND destined for the American market per resident of the respective state."
     }else if(input$production_choices == "Production consumed in Breweries (%)"){
       "Percentage of production consumed in breweries measures the percentage of a state\u0027s total beer production (destined for the American market) that is consumed on a brewery premise."
     }else if(input$production_choices == "Production sold in Bottles and Cans (%)"){
@@ -413,6 +423,21 @@ server <- function(input, output) {
     }
   })
 
+  output$production_text2 <-renderText({
+    if(input$production_choices == "Total Beer Production"){
+      "Total beer production measures the beer production (in barrels) that is deemed taxable by the US Alcohol and Tobacco Tax and Trade Bureau. It should be noted that this statistic does not include exported beer, thus only beer destined for the American market is included in the map."
+    }else if(input$production_choices == "Beer Consumed in Breweries (per person)"){
+      "Beer Consumed in Breweries (per person) measures the amount of beer (in 16oz pints) consumed on the premise of a brewery for each resident of the respective state. It should be noted that this statistic does not distinguish between state residents and visitors."
+    }else if(input$production_choices == "Beer Produced (per person)"){
+      "Beer Produced (per person) measures the amount of beer produced (in 16oz pints) AND destined for the American market per resident of the respective state."
+    }else if(input$production_choices == "Production consumed in Breweries (%)"){
+      "Percentage of production consumed in breweries measures the percentage of a state\u0027s total beer production (destined for the American market) that is consumed on a brewery premise."
+    }else if(input$production_choices == "Production sold in Bottles and Cans (%)"){
+      "Percentage of production sold in bottles and cans measure the percentage of a state\u0027s total beer production (destined for the American market) that is sold in bottles and cans."
+    }else{
+      "Percentage of production sold in kegs measures the percentage of a state\u0027s total beer production (destined for the American market) that is sold in kegs."
+    }
+  })
   
   output$poplinePlot <- renderPlotly({
     s = c(input$state_choice1,input$state_choice2,input$state_choice3)
@@ -450,10 +475,10 @@ server <- function(input, output) {
       y_axis_choice = "Beer in Barrels"
     }else if(input$production_choice1 == "Beer Consumed in Breweries (per person)"){
       type_choosen ="consumed_in_brewery_PP"
-      y_axis_choice = "Beer in Barrels"
+      y_axis_choice = "Beer in 16oz Pints"
     }else if(input$production_choice1 == "Beer Produced (per person)"){
       type_choosen = "prodcution_PP"
-      y_axis_choice = "Beer in Barrels"
+      y_axis_choice = "Beer in 16oz Pints"
     }else if(input$production_choice1 == "Production consumed in Breweries (%)"){
       type_choosen = "percent_in_brewery"
       y_axis_choice = "Percent of Total Production"
