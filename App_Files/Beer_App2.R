@@ -234,6 +234,11 @@ ui <- dashboardPage(
                                   selected = "Blank")
                       
                        
+                  ),
+                  box(width = NULL,
+                      title = "Data Information",
+                      background = "black",
+                      textOutput("brewery_text2")
                   )
                 )
                 
@@ -316,6 +321,11 @@ ui <- dashboardPage(
                                   "Choose Data Subject:",
                                   choices = reviewchoices,
                                   selected = "Mean ABV") 
+                  ),
+                  box(width = NULL,
+                      title = "Data Information",
+                      background = "black",
+                      textOutput("reviews_text")
                   )
                 )
                 
@@ -361,6 +371,14 @@ server <- function(input, output) {
       "Number of breweries measures the total number of breweries as licensed by the US Alcohol and Tobacco Tax and Trade Bureau." 
     }else{
       "Residents per brewery measures the number of state residents (in 1000s) per brewery located in the state. Note that the a darker color indicates MORE residents per brewery."   
+    }
+  })
+  
+  output$brewery_text2 <-renderText({
+    if(input$pop_choice1 == "Number of Breweries"){
+      "Number of breweries measures the total number of breweries as licensed by the US Alcohol and Tobacco Tax and Trade Bureau." 
+    }else{
+      "Residents per brewery measures the number of state residents (in 1000s) per brewery located in the state."   
     }
   })
   
@@ -424,15 +442,15 @@ server <- function(input, output) {
   })
 
   output$production_text2 <-renderText({
-    if(input$production_choices == "Total Beer Production"){
+    if(input$production_choice1 == "Total Beer Production"){
       "Total beer production measures the beer production (in barrels) that is deemed taxable by the US Alcohol and Tobacco Tax and Trade Bureau. It should be noted that this statistic does not include exported beer, thus only beer destined for the American market is included in the map."
-    }else if(input$production_choices == "Beer Consumed in Breweries (per person)"){
+    }else if(input$production_choice1 == "Beer Consumed in Breweries (per person)"){
       "Beer Consumed in Breweries (per person) measures the amount of beer (in 16oz pints) consumed on the premise of a brewery for each resident of the respective state. It should be noted that this statistic does not distinguish between state residents and visitors."
-    }else if(input$production_choices == "Beer Produced (per person)"){
+    }else if(input$production_choice1 == "Beer Produced (per person)"){
       "Beer Produced (per person) measures the amount of beer produced (in 16oz pints) AND destined for the American market per resident of the respective state."
-    }else if(input$production_choices == "Production consumed in Breweries (%)"){
+    }else if(input$production_choice1 == "Production consumed in Breweries (%)"){
       "Percentage of production consumed in breweries measures the percentage of a state\u0027s total beer production (destined for the American market) that is consumed on a brewery premise."
-    }else if(input$production_choices == "Production sold in Bottles and Cans (%)"){
+    }else if(input$production_choice1 == "Production sold in Bottles and Cans (%)"){
       "Percentage of production sold in bottles and cans measure the percentage of a state\u0027s total beer production (destined for the American market) that is sold in bottles and cans."
     }else{
       "Percentage of production sold in kegs measures the percentage of a state\u0027s total beer production (destined for the American market) that is sold in kegs."
@@ -526,6 +544,13 @@ server <- function(input, output) {
                  options= myoptions) 
     
     
+  })
+  output$reviews_text <-renderText({
+    if(input$Subject == "Mean ABV"){
+      "Mean ABV measures the average alcohol content of the reviewed beers in a given state. Note that this statistic is very simply calculated using the scraped beer review data. " 
+    }else{
+      "Mean rating measures the average overall rating of the reviewed beers in a given state. Note that this statistic is very simply calculated using the scraped beer review data."
+    }
   })
   
 }
